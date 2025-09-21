@@ -17,19 +17,37 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 讓 build 時可讀到你的金鑰
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      # 有些套件對 Node 20 比較挑，先用 18 穩定版
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
+          cache: "npm"
+
+      # GitHub Pages 的必要前置
       - uses: actions/configure-pages@v5
+
+      # 安裝依賴
       - run: npm ci || npm i
-      - run: |
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.productionnpm run build
+
+      # 讓 Vite 的 loadEnv 能在打包時讀到 .env 檔
+      - name: Write env files for Vite
+        run: |
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env.production
+
+      # 打包
+      - run: npm run build
+
+      # 上傳打包產物（Vite 預設 dist；若你改過，這裡也要改）
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist 
+          path: dist
+
   deploy:
     environment:
       name: github-pages
