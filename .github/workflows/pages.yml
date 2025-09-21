@@ -24,7 +24,9 @@ jobs:
           node-version: 20
       - uses: actions/configure-pages@v5
       - run: npm ci || npm i
-      - run: npm run build
+      - run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.productionnpm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist 
